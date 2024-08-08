@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Animation with Text Overlay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .text-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            z-index: 20;
+            /* Ensure it's above the canvas */
+            pointer-events: none;
+            /* Prevent any interaction */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-zinc-900 w-full">
+        <div class="parent relative top-0 left-0 w-full h-[700vh]">
+            <div class="w-full sticky h-screen top-0 left-0">
+                <canvas class="w-full h-screen z-10" id="frame"></canvas>
+                <div class="text-overlay">Made By Suryansh</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
+        integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"
+        integrity="sha512-onMTRKJBKz8M1TnqqDuGBlowlH0ohFzMXYRNebz+yOcc5TQr/zAKsthzhuv0hiyUKEiQEQXEynnXCvNTOk50dg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        const canvas = document.querySelector("canvas");
+        const context = canvas.getContext("2d");
+        const frames = {
+            currentIndex: 0,
+            MaxIndex: 382
+        };
+
+        let imagesLoaded = 0;
+        const images = [];
+        function PreLoadImg() {
+            for (var i = 1; i <= frames.MaxIndex; i++) {
+                const imgUrl = `./weiiii/frame_${i.toString().padStart(4, "0")}.jpeg`;
+                const img = new Image();
+                img.src = imgUrl;
+                img.onload = () => {
+                    imagesLoaded++;
+                    if (imagesLoaded === frames.MaxIndex) {
+                        loadImage(frames.currentIndex);
+                        startAnimation();
+                    }
+                };
+                images.push(img);
+            }
+        }
+
+        function loadImage(index) {
+            if (index >= 0 && index <= frames.MaxIndex) {
+                const img = images[index];
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const scaleX = canvas.width / img.width;
+                const scaleY = canvas.height / img.height;
+                const scale = Math.max(scaleX, scaleY);
+                const newWidth = img.width * scale;
+                const newHeight = img.height * scale;
+
+                const offsetX = (canvas.width - newWidth) / 2;
+                const offsetY = (canvas.height - newHeight) / 2;
+
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.imageSmoothingQuality = "high";
+                context.imageSmoothingEnabled = true;
+
+                context.drawImage(img, offsetX, offsetY, newWidth, newHeight);
+                frames.currentIndex = index;
+            }
+        }
+
+        function startAnimation() {
+            var t1 = gsap.timeline({
+                scrollTrigger: {
+                    trigger: ".parent",
+                    start: "top top",
+                    scrub: 2,
+                }
+            });
+
+            t1.to(frames, {
+                currentIndex: frames.MaxIndex,
+                onUpdate: function () {
+                    loadImage(Math.floor(frames.currentIndex));
+                }
+            });
+        }
+
+        PreLoadImg();
+    </script>
+</body>
+
+</html>
